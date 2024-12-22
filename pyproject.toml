@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "spei"
+version = "0.1.0"
+description = "This Python project calculates the **Standardized Precipitation Evapotranspiration Index (SPEI)** to monitor droughts by processing precipitation and temperature data, estimating potential evapotranspiration, and computing SPEI across multiple timescales. It supports various input formats, provides visualizations like time series and spatial maps, and outputs user-friendly results for analysis and reporting."
+authors = ["Jogean"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+dask = "^2024.12.1"
+numpy = "^2.2.1"
+pandas = "^2.2.3"
+cdsapi = ">=0.7.2"
+xarray = "^2024.11.0"
+netcdf4 = "^1.7.2"
+h5netcdf = "^1.4.1"
+zarr = "2.13"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
