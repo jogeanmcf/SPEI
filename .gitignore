@@ -9,6 +9,7 @@ __pycache__/
 # Large data files
 *.nc
 *.zarr
+*.npy
 
 # Distribution / packaging
 .Python

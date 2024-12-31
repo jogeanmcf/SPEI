@@ -6,11 +6,11 @@ class Variable(str, Enum):
 
     pr = "pr"
     tas = "tas"
-    # tasmax = "tasmax"
-    # hurs = "hurs"
-    # wgsmax = "wsgsmax"
-    # sfcWind = "sfcWind"
-    # sfcWindmax = "sfcWindmax"
+    tasmax = "tasmax"
+    hurs = "hurs"
+    wgsmax = "wsgsmax"
+    sfcWind = "sfcWind"
+    sfcWindmax = "sfcWindmax"
 
 
 class TimeFrequency(str, Enum):

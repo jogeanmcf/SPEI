@@ -67,6 +67,7 @@ def save_bash_scritp(
     driving_model: DrivingModel | List[DrivingModel] | None = None,
     rcm_name: RcmModel | List[RcmModel] | None = None,
     ensemble: str | None = None,
+    path: str = '',
 ) -> None:
     BASE_URL = "http://esgf-node.llnl.gov/esg-search/"
     uri = f"""
@@ -79,9 +80,9 @@ def save_bash_scritp(
     {f'&ensemble={ensemble}' if ensemble else '' }
     {f'&driving_model={handle_input(driving_model)}' if driving_model else '' }
     {f'&rcm_name={handle_input(rcm_name)}' if rcm_name else '' }
-    {f'&institute!={Institute.ICTP}'}
+    {f'&institute!={Institute.ICTP, Institute.CEC}'}
     &latest=true
     """.replace("\n", "").replace(" ", "")
     request = requests.get(uri)
-    with open(f"./{variable}_{experiment}.sh", "w") as file:
+    with open(f"./{path}/{domain}_{experiment}_{variable}.sh", "w") as file:
         file.write(request.text)
