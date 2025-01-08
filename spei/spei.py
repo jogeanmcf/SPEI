@@ -92,6 +92,8 @@ def calculate_solar_angles(
     # Calculate sunset hour angle
     tan_delta = np.tan(delta)
     tan_lat_delta = tan_lat * tan_delta
+    tan_lat_delta[tan_lat_delta < -1] = -1
+    tan_lat_delta[tan_lat_delta > 1] = 1
     omega = np.arccos(-tan_lat_delta)
 
     # Calculate mean daily daylight hours
@@ -115,18 +117,17 @@ def calculate_heat_index(temperatures: pd.Series) -> Tuple[np.ndarray, np.ndarra
         I: Heat index array
         m: Empirical exponent
     """
-    # Calculate heat index
-    temperatures = temperatures.clip(lower=0)
-    heat_index = (temperatures / 5) ** 1.514
-    I = heat_index.groupby(
-        heat_index.index.month
-    ).median()  ## 🟡 The article says it to be a sum instead of mean, but doing
-    ##    so the results diverges quite a lot from the validation dataset
 
+    temperatures = temperatures.clip(lower=0)
+    i = (temperatures / 5) ** 1.514
+    I = i.groupby(i.index.year).sum()
     # Calculate empirical exponent
     m = 6.75e-07 * I**3 - 7.71e-05 * I**2 + 0.01792 * I + 0.492
 
-    return I.values, m.values
+    # Mapping values to match the monthly time resolution
+    I = temperatures.index.year.map(I).values
+    m = temperatures.index.year.map(m).values
+    return I, m
 
 
 def _calculate_pet(tas: np.ndarray, time: np.ndarray, lat: float) -> np.ndarray:
@@ -164,38 +165,17 @@ def _calculate_pet(tas: np.ndarray, time: np.ndarray, lat: float) -> np.ndarray:
     K = (N / 12) * (mlen_array / 30)
 
     # Convert temperature array to pandas Series for time-based operations
-    tas[tas < 0] = 0
     tas_series = pd.Series(data=tas, index=time)
-    month_indices = tas_series.index.month
+    # month_indices = tas_series.index.month
 
     # Calculate heat index and empirical exponent
     I, m = calculate_heat_index(tas_series)
 
-    # Map monthly values back to original time series
-    I_mapped = I[month_indices - 1]
-    m_mapped = m[month_indices - 1]
-
     # Calculate final PET
-    pet = 16 * K * (10 * tas / I_mapped) ** m_mapped
-
-    # ------- following R package ----------
-    # Tt = tas.reshape(-1,12).mean(axis=0)
-    # Tt[Tt<0] = 0
-    # # J = np.power(Tt/5, 1.514).sum() ## 🟡 The R package says it is a sum here, but this
-    # ##                                ##    diverges quite a lot from the validation dataset
-    # # J = np.power(Tt/5, 1.514).mean()
-
-    # J2 = J * J
-    # J3 = J2 * J
-    # q = 0.000000675 * J3 - 0.0000771 * J2 + 0.01792 * J + 0.49239
-    # # extend_length = int(len(tas)/12)
-    # extend_length = len(tas)
-    # J = np.tile(J, extend_length)
-    # q = np.tile(q, extend_length)
-    # tas[tas<0] = 0
-    # pet = K*16*np.power((10*tas/J), q)
-    # return pet
-
+    pet = np.zeros_like(tas)
+    for index, _I in enumerate(I):
+        if _I != 0:
+            pet[index] = 16 * K[index] * (10 * tas[index] / _I) ** m[index]
     return pet
 
 
@@ -244,7 +224,6 @@ def calculate_pet(
             )
 
     return pet
-
 
 
 def rolling_mean(array, window_size, axis=0):
