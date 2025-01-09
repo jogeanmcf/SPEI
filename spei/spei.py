@@ -329,9 +329,9 @@ def _calculate_spei(
 
     # Fit Pearson III distribution and calculate probabilities
     distribution_params = np.apply_along_axis(
-        fit_distribution, axis=0, arr=reshaped_data
+        lambda arr: fit_distribution(data=arr,distribution=distribution), axis=0, arr=reshaped_data
     )
-    probabilities = stats.pearson3.cdf(reshaped_data, *distribution_params)
+    
     match distribution:
         case "Gamma":
             probabilities = stats.gamma.cdf(reshaped_data, *distribution_params)
